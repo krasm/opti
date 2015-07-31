@@ -1,0 +1,2 @@
+
+knapsack: knapsack.exe
