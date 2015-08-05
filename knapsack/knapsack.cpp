@@ -5,6 +5,7 @@
 #include <vector>
 #include <iterator>
 #include <algorithm>
+#include <set>
 
 #include <math.h>
 #include <assert.h>
@@ -170,9 +171,13 @@ int precalc(const vector<KItem> & items, const int K) {
 }
 
 
-void solve() {
+/*
+ * oblicz ile maksymalna wartosc jezeli dalaczymy wszystkie mozliwe elementy
+ */
+int get_bound(const vector<KItem> & items, int idx, int cap) {
 
 }
+
 
 static bool verbose = true;
 int main(int argc, char * argv[]) {

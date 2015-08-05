@@ -1,0 +1,248 @@
+-*- mode: org -*-
+
+* General description
+Bactracking is used to solve problems in which a sequence of objects 
+is chosen from a specified set so that sequence satisfies some criterion. 
+
+backtracking is modified depth first search of a tree (a visit to a node is 
+followed immediatelly by visits to all its descendands of the node).
+
+Backtracking is the procedure whereby, after determining that a node can lead
+to nothing but dead-end, we go back ("backtrack") to the node's parent and 
+proced search with the next child. We call the node nonpromising if when 
+visiting the node we determined that it can not lead to solution. Otherwise 
+we call it promising. This is called pruning the state space tree. 
+
+A general algorithm for the backtracking is as follow:
+
+#+begin_src c++
+  void check_node(node v) {
+      node u;
+      if(promising(v)) {
+          if(there_is_solution_at(v))
+              print_solution();
+          else
+              for(each child u of v) 
+                  check_node(u);
+      }
+  }
+#+end_src
+
+The promsing function is different for each application of backtracking. 
+Backtracking algo does not need to create a tree. Rather it only needs to 
+keep track of the values investigated in current branch. 
+
+
+* The n-queens problem.
+
+To place n queens on n x n chees board in such a way that none of
+them attack each other. 
+
+The promising function must check if two queens are in the same column 
+or diagonal. Let col(i) is a column where queen in row i is located. Then 
+we need to chek whether col(i) = col(k) for queens in any rows i and k and 
+to chek diagonals we have
+col(i) - col(k) = i - k or col(i) - col(k) = k - i.
+
+#+begin_src c++
+  void queens(index i) {
+      index j;
+      if(promising(i)) {
+          if(i == n) {
+              cout << col[1] ... col[n] << endl;
+          } else {
+              // check if queen in (i+1)st row can
+              // be positioned in each of the n columns
+              for(j = 1; j <= n; j++) {
+                  col[i+1] = j;
+                  queens(i+1);
+              }
+          }
+      }
+  }
+  
+  bool promising(index i) {
+      index k = 1;
+      bool  sw = true;
+  
+      while(k < i and sw) {
+          if(col[k] == col[i] or abs(col[i] - col[k]) == i - k)
+              sw = false;
+          k++;
+      }
+  
+      return sw;
+  }
+  
+      
+#+end_src
+
+* The Sum-of-Subset problem
+
+There are n positive integers w_i and a positive integer W. The goal 
+is to find all subsets of the integeres which sum to W (0-1 knapsack 
+problem with items which have the same profit per unit of weight).
+
+We can create state space tree by labeling edges in the following way, if we include 
+item w_i we we going to the left and label edge on level i with w_i, in other case 
+we going to the right and label edge with 0. If we sort integers in nondecreasing order 
+before doing search there is an obvious sign telling us that a node is non promising,
+the weight w_{i+1} on level i is the lightest weight remaining. Let w be sum the sum 
+of all weights that have been included up to the node w_{i+1}. If w_{i+1} would bring 
+the total weight above W then so would all the weights following it. Therefore 
+unless w equals W (which means that there is solution at that node), a node at level i
+is non promissing if \( w + w_{i+1} > W \). 
+
+Another less obvious sign telling us thet the node is non promissing is 
+as follow, if at a given node, adding all the remainig weights to w does 
+not make w at least equal to W, then weight w could newver become W by 
+expanding beyond the node. This means if t is total weight of remaining nodes 
+then a node is not promising if w + t < W.
+
+* Graph Coloring
+  The m-coloring problem concerns finding all ways to color unidirected graph 
+  using at most m colors so that than no two adjacent vertices are the same 
+  color. 
+  A graph is called *planar* if it can be drawn in such a way that no
+  two edges cross each other. Any map may be represented as a planar graph.
+
+  Graph is represented as adjacency matrix W where W[i][j] == true if 
+  nodes i and j are adjacent.
+  
+ #+begin_src c++
+   void coloring(index i) {
+       int color;
+   
+       if(promising(i)) {
+           if(i == n)
+               print_solution();
+           else {
+               // try every color for each vertex
+               for(color = 0; color <= m; color++) {
+                   vcolor[i+i] = color;
+                   coloring(i+1);
+               }
+           }
+       }
+   }
+   
+   bool promising(index i) {
+       index j = 1;
+       bool s = true;
+   
+       while(j < i and s) {
+           if(W[i][j] and vcolor[i] == vcolor[j]) {
+               s = false;
+           }
+           j++;
+       }
+   
+       return s;
+   }
+   
+   
+ #+end_src
+
+* The Hamiltonian Circuits Problem
+  
+* The 0-1 Knapsack Problem
+  We have set of items, each of whch has profit and weight. Our 
+  objective is to choose items in such a way that total weight 
+  of choosen items does not exceed W but the chosen items maximize 
+  total profit.
+  We can solve this problem using the same state space tree as in 
+  the Sum Of Subset problem i.e. we go left from the node to 
+  include item and to the right to exclude it. Each path from 
+  root to leaf is candidate solution. But it is optimalization problem
+  so we do not know if the node contains the solution until the 
+  search is over. Therefore we backtrack slightly differently. 
+  If the items included up to the node have a greatest total profit 
+  that the solution found so far, we change the value of the best solution 
+  so far. However we may still find a better solution at one 
+  of the node's descendands (by stilling more items). Therefore 
+  for optimalization problem we always visit a promissing node's 
+  children. The following is a general algorithm:
+
+#+begin_src c++
+  void checknode(node v) {
+      node u;
+      if(value(v) is better than best)
+          best = value(v);
+      if(promissing(v)) {
+          for(each child u of v) {
+              checknode(u);
+          }
+      }
+  }
+#+end_src
+
+  The variable best has the best solution found so far, and the value(v) 
+  is value of the solution at node v. Initially we initialize best to the 
+  value smaller than any possible solution and we passing root at top level. 
+  Also the node is promissing if its children need to be expanded !
+
+  The node is non promising if there is no capacity left i.e. the total 
+  weight so far w is greater or equal to total capacity W (if total weight 
+  so far is equal to total capacity W we can not add more items). To show 
+  less obvious sign that node is not promissing we will use observations
+  from Fractional Knapsack and greedy algorithm. Let order all items in 
+  non increasing order by p_i / w_i, where p_i is profit of i-th item 
+  and w_i its weight. Suppouse that we are trying to determine if the node i 
+  is promising. No matter how we choose subsequent items we can not 
+  obtain the higher profit than we would obtain it we can use rstriction 
+  in the Fractional Knapsack problem from this node on (i.e. we can 
+  pack fraction of the item). We can obtain upper bound of the total 
+  profit obtained by expanding beyond that node as follows. Let 
+  p is a sum of all profits of items included up to the node, and w 
+  is a sum of the weights of those items. We initialize bound and 
+  totweight to p and w respectivetely. Next we greedily grab items 
+  adding their profits to bound and weights to totweight until 
+  we get to the item which if grabbed would exceed total capacity W.
+  We grab a fraction of that item allowed by the remaining capacity
+  and we add the value of that fraction to bound. We can not get to 
+  bound if we expand below that node but now the bound is upper bound 
+  of the profit if we expand beyond that node. Suppuse the node is at
+  the level i, and the node at level k is the one that would bring the sum 
+  over the limit W. If the max_profit is value of the best solution 
+  found so far the node is not promissing if bound <= max_profit.
+  We are using greedy consideration only to find the upper bound but 
+  not the solution !
+  #+begin_src c++
+    void knapsack(index i, int profit, int weight) {
+        if(weight <= W and profit > max_profit) {
+            max_profit = profit;
+            numbest = i;
+            best_set = include;
+        }
+        if(promising(i)) {
+            include[i+1] = true;
+            knapsack(i+1, profit + p[i+1], weight + w[i+1]);
+            include[i+1] = false;
+            knapsack(i+1, profit, weight);
+        }
+    }
+    
+    bool promising(index i) {
+        index j, k;
+        int totweight;
+        float bound;
+    
+        if(weight >= W) {
+            false;
+        } else {
+            j = i + 1;
+            bound = profit;
+            totweight = weight;
+            while( j <= n and tot_weight + w[j] <= W) {
+                ttoweight += w[j];
+                bound += p[j];
+                j ++;
+            }
+    
+            k = j;
+            if(k <= n)
+                bound += (W - tot_weight) * p[k] / w[k];
+            return bound > max_profit;
+        }
+    }
+#+end_src
